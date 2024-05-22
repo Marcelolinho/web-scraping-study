@@ -2,7 +2,8 @@ from bs4 import BeautifulSoup
 import requests
 import time
 
-website = 'https://subslikescript.com/movies'
+root = 'https://subslikescript.com' # Basicamente cria um escopo maior para a raspagem
+website = f'{root}/movies'
 
 try:
     response = requests.get(website)
@@ -18,11 +19,23 @@ try:
         links.append(link['href'])
         time.sleep(1)
 
-    print(links)
+    #print(links)
+    
+    for link in links:
+        website = f'{root}/{link}'
+        
+        response = requests.get(website)
+        content = response.text
+        soup = BeautifulSoup(content, 'lxml')
 
+        article = soup.find('article', class_='main-article')
 
-    """ for link in links:
-        time.sleep(1) """
+        title = article.find('h1').get_text()
+        text = article.find('div', class_='full-script').get_text(strip=True, separator=' \n')
+
+        with open (f'./BeautifulSoup/Roteiros/{title}.txt', 'w') as file:
+            file.write(text)
+
 except requests.exceptions.RequestException as e:
     print(f'Erro ao fazer a request: {e}')
 except AttributeError as e:
